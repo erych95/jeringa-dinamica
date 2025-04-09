@@ -2,5 +2,6 @@
 Indicador Dinámico de Jeringa para Aplicaciones Médicas. Este componente puede integrarse con una base de datos para representar visualmente el nivel de llenado de acuerdo con los valores registrados en tiempo real.
 
 
-https://github.com/user-attachments/assets/8a58fa91-73eb-4604-bff1-2c836a9c4fc7
+
+https://github.com/user-attachments/assets/737bc75a-a8cc-4ab8-8cfc-503e53503388
 
