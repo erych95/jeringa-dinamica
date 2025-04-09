@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Jeringa Dinámica - Ajuste Base y 0% Resaltado</title>
+
+  <!-- Bootstrap 5 (CDN) -->
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  />
+
+  <style>
+    body {
+      background: #fff;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    h1 {
+      margin: 20px 0;
+      text-align: center;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .controls {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    #percentageInput {
+      width: 70px;
+      text-align: center;
+    }
+    .syringe-container {
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      margin-bottom: 30px;
+    }
+    /* Animación horizontal de la ola */
+    #wave {
+      animation: waveMove 3s linear infinite;
+    }
+    @keyframes waveMove {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-180px); }
+    }
+    /* Suavidad al subir/bajar el agua */
+    #water-group {
+      transition: transform 2s ease;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>Jeringa Dinámica</h1>
+
+  <!-- Controles con Bootstrap -->
+  <div class="controls">
+    <label for="percentageInput" class="form-label mb-0">Porcentaje (0 - 100):</label>
+    <input
+      type="number"
+      id="percentageInput"
+      class="form-control"
+      min="0" max="100"
+      value="50"
+    />
+    <button id="applyBtn" class="btn btn-primary">Aplicar</button>
+  </div>
+
+  <div class="syringe-container">
+    <svg id="syringe-svg" width="180" height="520" viewBox="0 0 180 520" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <!-- Gradiente del agua (onda) -->
+        <linearGradient id="waveGradient" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#f30057" />
+          <stop offset="100%" stop-color="#ff7da4" />
+        </linearGradient>
+
+        <!-- Gradiente gris aguja -->
+        <linearGradient id="needleGradient" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#ccc" />
+          <stop offset="100%" stop-color="#666" />
+        </linearGradient>
+
+        <!-- Gradiente para la cabeza celeste -->
+        <linearGradient id="headGradient" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#e0f7ff" />
+          <stop offset="50%" stop-color="#b3e5fc" />
+          <stop offset="100%" stop-color="#81d4fa" />
+        </linearGradient>
+
+        <!-- Clip del cuerpo (y=90..480 => 390 px) -->
+        <clipPath id="bodyClip">
+          <rect x="60" y="90" width="60" height="390" />
+        </clipPath>
+      </defs>
+
+      <!-- 1) Cabeza con degradado celeste -->
+      <path
+        d="M 60,0
+           L 120,0
+           L 120,30
+           L 140,30
+           L 140,60
+           L 120,60
+           L 120,90
+           L 60,90
+           L 60,60
+           L 40,60
+           L 40,30
+           L 60,30
+           Z"
+        fill="url(#headGradient)"
+        stroke="#000"
+        stroke-width="2"
+      ></path>
+
+      <!-- 2) Fondo rosado en el tubo -->
+      <rect x="60" y="90" width="60" height="390" fill="#ffdce6" />
+
+      <!-- Borde del tubo -->
+      <path
+        d="M 60,90
+           L 60,480
+           L 120,480
+           L 120,90
+           Z"
+        fill="none"
+        stroke="#000"
+        stroke-width="2"
+      ></path>
+
+      <!-- 3) Aguja con punta -->
+      <path
+        d="M 87,480
+           L 93,480
+           L 90,520
+           Z"
+        fill="url(#needleGradient)"
+        stroke="#000"
+        stroke-width="1"
+      ></path>
+
+      <!-- 4) Agua con ola animada, recortada por el tubo -->
+      <g clip-path="url(#bodyClip)">
+        <g id="water-group" transform="translate(0, 480)">
+          <path
+            id="wave"
+            fill="url(#waveGradient)"
+            d="
+              M 0,390
+              L 0,0
+              C 30,20 60,0 90,10
+              C 120,20 150,0 180,10
+              C 210,20 240,0 270,10
+              C 300,20 330,0 360,10
+              L 360,390
+              Z
+            "
+          ></path>
+        </g>
+      </g>
+
+      <!-- 5) Escala interna cada 5% (0..100), en color blanco.
+             Resaltamos 0% en amarillo y más grande. -->
+      <g id="scaleMarks">
+        <script type="text/javascript"><![CDATA[
+          const startY = 480; // y=480 => 0%
+          const endY = 90;    // y=90 => 100%
+          const total = 390;  // 480-90
+          const stepCount = 20;
+          const lineX1 = 115, lineX2 = 120, textX = 110;
+          let markup = '';
+
+          for (let i=0; i <= stepCount; i++){
+            let label = i * 5;  // 0..100
+            let y = startY - (label / 100) * total;
+
+            // Línea delgada
+            markup += `<line x1='${lineX1}' y1='${y}' x2='${lineX2}' y2='${y}' stroke='white' stroke-width='1'></line>`;
+
+            if (label === 0) {
+              // Resaltamos 0% (más grande, amarillo)
+              markup += `
+                <text x='${textX}' y='${y+4}'
+                  fill='white'
+                  font-size='14'
+                  font-weight='bold'
+                  text-anchor='end'>
+                  ${label}%
+                </text>`;
+            } else {
+              // Los demás en blanco, normal
+              markup += `
+                <text x='${textX}' y='${y+4}'
+                  fill='white'
+                  font-size='12'
+                  text-anchor='end'>
+                  ${label}%
+                </text>`;
+            }
+          }
+
+          document.write(markup);
+        ]]></script>
+      </g>
+    </svg>
+  </div>
+</div>
+
+<!-- Bootstrap 5 JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+  const applyBtn = document.getElementById('applyBtn');
+  const percentageInput = document.getElementById('percentageInput');
+  const waterGroup = document.getElementById('water-group');
+
+  // Rango vertical del tubo: 90..480 (390 px)
+  // 0% => y=480, 100% => y=90
+  // offsetAdjustment => reduce cualquier brecha
+  const offsetAdjustment = 2;
+
+  applyBtn.addEventListener('click', () => {
+    let pct = parseInt(percentageInput.value, 10);
+    if (isNaN(pct) || pct < 0) pct = 0;
+    if (pct > 100) pct = 100;
+
+    const bottomY = 480;
+    const topY = 90;
+    const total = bottomY - topY; // 390
+    // offset => 480 - (pct/100)*390 - offsetAdjustment
+    const offset = (bottomY - (pct / 100) * total) - offsetAdjustment;
+
+    waterGroup.setAttribute('transform', `translate(0, ${offset})`);
+  });
+</script>
+
+</body>
+</html>
